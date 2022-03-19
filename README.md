@@ -21,7 +21,7 @@ R|right
 
 `dataArray[3] = 106 ;//Right`
 
-##You can construct the contents of this string using the table below.
+## You can construct the contents of this string using the table below.
 
 number|motor|direction
 ------|-----|---------
@@ -40,10 +40,28 @@ Motor 1|+|Motor 2|+|Motor 3|+|Motor 4|=|Calculate|
 -------|-|-------|-|-------|-|-------|-|---------|
 4|+|2|+|32|+|1|=|39|
 
-##We send the calculated data to the 74HC595 with the following command.
+## We send the calculated data to the 74HC595 with the following command.
 
 `shiftOut(dataPin, clockPin, MSBFIRST, b);`
 
 ---------------------------------------------------------------
-The connection diagram is as follows.
+## The connection diagram is as follows.
+
 ![image](https://user-images.githubusercontent.com/8502843/159135955-4819d826-f785-415b-a599-889d1a689252.png)
+
+-------------------------
+## L293D Motor Driver Pin Outs
+
+![image](https://user-images.githubusercontent.com/8502843/159137528-b2cee857-959c-4e8a-8324-41a45751d480.png)
+
+-------------------------
+## Adafruit Motor Shield v1 Schematic
+
+![image](https://user-images.githubusercontent.com/8502843/159137561-7a1ec34d-c317-40c9-8634-f65cb9622dc2.png)
+
+-------------------------
+## 74HC595 Pin Outs
+
+![image](https://user-images.githubusercontent.com/8502843/159137586-d0d62345-831a-400d-a24a-9cb17e71c818.png)
+
+
