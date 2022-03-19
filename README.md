@@ -66,4 +66,12 @@ Motor 1|+|Motor 2|+|Motor 3|+|Motor 4|=|Calculate|
 
 ![image](https://user-images.githubusercontent.com/8502843/159137586-d0d62345-831a-400d-a24a-9cb17e71c818.png)
 
+-------------------------
+## Final Robot
+
+![image](https://user-images.githubusercontent.com/8502843/159138310-ca8f464b-9fc3-4af5-b0a0-965483c346ae.png)
+------------------------
+![image](https://user-images.githubusercontent.com/8502843/159138328-c3e05ca0-1f47-40e8-b39a-d95f3c70a547.png)
+
+
 
