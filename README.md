@@ -1,4 +1,7 @@
-# Wifi ESP Robot
+# Wifi ESP Robot with 4 motor driver
+
+NodeMCU ESP8266 to Adafruit Motor Shield V1. This is an old motor driver. I couldn't find any esp8266 connection with this motor driver anywhere. I made a connection in this way. I hope I could help. I would be very happy if you help me develop the robot.
+
 - Designed a tool by connecting NodeMCU ESP8266 to Adafruit Motor Shield V1.
 - Thank you Jan Lipovský http://blog.janlipovsky.cz/2016/03/ 
 - Thank you https://github.com/embeddedlab786/Wifi_Robot
