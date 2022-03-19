@@ -1,5 +1,6 @@
-# WifiESPRobot
+# Wifi ESP Robot
 - Designed a tool by connecting NodeMCU ESP8266 to Adafruit Motor Shield V1.
+- Thank you Jan Lipovský http://blog.janlipovsky.cz/2016/03/ 
 
 - You can connect to the IP address of the device with any TCP Client application. TCP xxx.xxx.xxx.xxx : 5006
 -After connecting, the robot moves according to the commands you send:
