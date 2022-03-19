@@ -6,12 +6,11 @@
 - You can connect to the IP address of the device with any TCP Client application. TCP xxx.xxx.xxx.xxx : 5006
 -After connecting, the robot moves according to the commands you send:
 
-command|movement
--------|-------
-F|forward
-B|back
-L|left
-R|right
+command|movement|--|command|movement
+-------|--------|--|-------|--------
+F|forward||B|back
+L|left||R|right
+S|Stop|||
 
 ## We give the motion with the dataArray string.
 
