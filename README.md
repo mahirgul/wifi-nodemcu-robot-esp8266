@@ -76,5 +76,3 @@ Motor 1|+|Motor 2|+|Motor 3|+|Motor 4|=|Calculate|
 ![image](https://user-images.githubusercontent.com/8502843/159138328-c3e05ca0-1f47-40e8-b39a-d95f3c70a547.png)
 
 https://mahirgul.github.io/wifi-nodemcu-robot-esp8266/
-
-
