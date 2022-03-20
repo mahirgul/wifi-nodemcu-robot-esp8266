@@ -1,5 +1,4 @@
 
-
 #include <ESP8266WiFi.h>
 
 #define SendKey 0  //Button to send data Flash BTN on NodeMCU
@@ -11,38 +10,36 @@ WiFiServer server(port);
 const char *ssid = "YourSSID";  //Enter your wifi SSID
 const char *password = "YourPass";  //Enter your wifi Password
 
-int latchPin = D8;
-int clockPin = D7;
-int dataPin = D6;
-int enaPin = D5;
+int regPins[3] = {D6, D7, D8};
+//74HC595 pins latchPin = D8; clockPin = D7; dataPin = D6; enaPin = D5;
 
-int motor[4];
+int motor[4] = {D1, D2, D3, D4};
+//L293D Motor control speed pins
 
 int sped = 200;
+//Startup motor speed
 
-byte dataArray[4];
+int contPins[2] = {D0, D5};
+//other control pins light etc.
+
+byte dataArray[4] = {39, 216, 149, 106};
+//Motor control serial data 39 Forward ---- 216 Backward ---- 149 Left ---- 106 Right
+
 String moveData = "";
 String Data = "";
+
 WiFiClient client;
 
 void setup()
 {
-  motor[1] = D1;
-  motor[2] = D2;
-  motor[3] = D3;
-  motor[4] = D4;
-
   Serial.begin(115200);
-  dataArray[0] = 39; //Forward
-  dataArray[1] = 216; //Back
-  dataArray[2] = 149; //Left
-  dataArray[3] = 106 ;//Right
 
-  pinMode(latchPin, OUTPUT);
-  pinMode(clockPin, OUTPUT);
-  pinMode(dataPin, OUTPUT);
-  pinMode(enaPin, OUTPUT);
+  pinMode(regPins[0], OUTPUT);
+  pinMode(regPins[1], OUTPUT);
+  pinMode(regPins[2], OUTPUT);
 
+  pinMode(contPins[0], OUTPUT);
+  pinMode(contPins[1], OUTPUT);
 
   pinMode(motor[1], OUTPUT);
   pinMode(motor[2], OUTPUT);
@@ -88,6 +85,14 @@ void loop()
     right();
   else if (moveData == "S")
     mstop();
+  else if (moveData == "Q")
+    controlOut(moveData);
+  else if (moveData == "W")
+    controlOut(moveData);
+  else if (moveData == "q")
+    controlOut(moveData);
+  else if (moveData == "w")
+    controlOut(moveData);
 
   if (client)
   {
@@ -95,7 +100,7 @@ void loop()
     {
       Data = client.read();
       Data.trim();
-      if (Data == "F" || Data == "B" || Data == "L" || Data == "R" || Data == "S")
+      if (Data == "F" || Data == "B" || Data == "L" || Data == "R" || Data == "S" || Data == "Q" || Data == "W" || Data == "q" || Data == "w")
       {
         moveData = Data;
         Serial.println(moveData);
@@ -121,12 +126,23 @@ void loop()
   }
 }
 
+void controlOut(String _data)
+{
+  if (_data == "Q")
+    digitalWrite(contPins[0], HIGH);
+  else if (_data == "q")
+    digitalWrite(contPins[0], LOW);
+  else if (_data == "W")
+    digitalWrite(contPins[1], HIGH);
+  else if (_data == "w")
+    digitalWrite(contPins[1], LOW);
+}
+
 void movement(int b)
 {
-  digitalWrite(enaPin, LOW);
-  digitalWrite(latchPin, HIGH);
-  shiftOut(dataPin, clockPin, MSBFIRST, b);
-  digitalWrite(latchPin, LOW);
+  digitalWrite(regPins[2], HIGH);
+  shiftOut(regPins[0], regPins[1], MSBFIRST, b);
+  digitalWrite(regPins[2], LOW);
 }
 
 void setSped(String sp)
@@ -173,7 +189,6 @@ void setSpeed(int sp, int mt)
 
 void forward()
 {
-  //Serial.println("forward");
   setSpeed(sped, 1);
   setSpeed(sped, 2);
   setSpeed(sped, 3);
@@ -183,7 +198,6 @@ void forward()
 
 void backward()
 {
-  //Serial.println("backward");
   setSpeed(sped, 1);
   setSpeed(sped, 2);
   setSpeed(sped, 3);
@@ -193,7 +207,6 @@ void backward()
 
 void left()
 {
-  //Serial.println("left");
   setSpeed(sped, 1);
   setSpeed(sped, 2);
   setSpeed(sped, 3);
@@ -203,7 +216,6 @@ void left()
 
 void right()
 {
-  //Serial.println("right");
   setSpeed(sped, 1);
   setSpeed(sped, 2);
   setSpeed(sped, 3);
@@ -213,7 +225,6 @@ void right()
 
 void mstop()
 {
-  //Serial.println("stop");
   setSpeed(0, 1);
   setSpeed(0, 2);
   setSpeed(0, 3);
