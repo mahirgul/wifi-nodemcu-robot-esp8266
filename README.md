@@ -27,16 +27,16 @@ S|Stop|||
 
 ## You can construct the contents of this string using the table below.
 
-number|motor|direction
-------|-----|---------
-4|M1|clockwise
-8|M1|counterclockwise
-2|M2|clockwise
-16|M2|counterclockwise
-32|M3|clockwise
-128|M3|counterclockwise
-1|M4|clockwise
-64|M4|counterclockwise
+74HC595 Out | Bits|number|motor|direction
+------------|-----|------|-----|---------
+QC|2|4|M1|clockwise
+QD|3|8|M1|counterclockwise
+QB|1|2|M2|clockwise
+QE|4|16|M2|counterclockwise
+QF|5|32|M3|clockwise
+QH|7|128|M3|counterclockwise
+QA|0|1|M4|clockwise
+QG|6|64|M4|counterclockwise
 
 Example: We add the numbers of clockwise rotations so that all engines go forward.
 
