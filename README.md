@@ -51,7 +51,7 @@ Motor 1|+|Motor 2|+|Motor 3|+|Motor 4|=|Calculate|
 ---------------------------------------------------------------
 ## The connection diagram is as follows.
 
-![image](https://user-images.githubusercontent.com/8502843/159135955-4819d826-f785-415b-a599-889d1a689252.png)
+![image](https://user-images.githubusercontent.com/8502843/159154413-0b231b5e-097c-4af1-8b3e-89f63581982f.png)
 
 -------------------------
 ## L293D Motor Driver Pin Outs
