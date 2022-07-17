@@ -11,7 +11,7 @@ const char *ssid = "YourSSID";  //Enter your wifi SSID
 const char *password = "YourPass";  //Enter your wifi Password
 
 int regPins[3] = {D6, D7, D8};
-//74HC595 pins latchPin = D8; clockPin = D7; dataPin = D6; enaPin = D5;
+//74HC595 pins latchPin = D8; clockPin = D7; dataPin = D6;
 
 int motor[4] = {D1, D2, D3, D4};
 //L293D Motor control speed pins
