@@ -1,14 +1,25 @@
 
 #include <ESP8266WiFi.h>
-
 #define SendKey 0  //Button to send data Flash BTN on NodeMCU
 
-int port = 5006;  //Port number
-WiFiServer server(port);
 
-//Server connect to WiFi Network
-const char *ssid = "YourSSID";  //Enter your wifi SSID
-const char *password = "YourPass";  //Enter your wifi Password
+#define STASSID "GulHome"
+#define STAPSK  "demet@mahir@123"
+
+#define BAUD_SERIAL 115200
+#define RXBUFFERSIZE 1024
+
+#define STACK_PROTECTOR  512 // bytes
+
+//how many clients should be able to telnet to this ESP8266
+#define MAX_SRV_CLIENTS 64
+const char* ssid = STASSID;
+const char* password = STAPSK;
+
+const int port = 5006;
+
+WiFiServer server(port);
+WiFiClient serverClients[MAX_SRV_CLIENTS];
 
 int regPins[3] = {D6, D7, D8};
 //74HC595 pins latchPin = D8; clockPin = D7; dataPin = D6;
@@ -16,8 +27,14 @@ int regPins[3] = {D6, D7, D8};
 int motor[4] = {D1, D2, D3, D4};
 //L293D Motor control speed pins
 
-int sped = 200;
 //Startup motor speed
+int startSpeed = 160;
+
+int speed = 160;
+
+int maxSpeed = 100;
+
+int lastSpeed = 0;
 
 int contPins[2] = {D0, D5};
 //other control pins light etc.
@@ -26,13 +43,27 @@ byte dataArray[4] = {39, 216, 149, 106};
 //Motor control serial data 39 Forward ---- 216 Backward ---- 149 Left ---- 106 Right
 
 String moveData = "";
+String lastMoveData = "";
 String Data = "";
 
-WiFiClient client;
+void setup() {
 
-void setup()
-{
-  Serial.begin(115200);
+  Serial.begin(BAUD_SERIAL);
+  Serial.setRxBufferSize(RXBUFFERSIZE);
+
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(ssid, password);
+
+  Serial.println("Connecting to Wifi");
+
+  while (WiFi.status() != WL_CONNECTED)
+  {
+    Serial.print(".");
+    delay(500);
+  }
+
+  //start server
+  server.begin();
 
   pinMode(regPins[0], OUTPUT);
   pinMode(regPins[1], OUTPUT);
@@ -46,34 +77,104 @@ void setup()
   pinMode(motor[3], OUTPUT);
   pinMode(motor[4], OUTPUT);
 
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid, password); //Connect to wifi
-
-  // Wait for connection
-  Serial.println("Connecting to Wifi");
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-    delay(500);
-  }
-
   Serial.println("");
   Serial.print("Connected to ");
   Serial.println(ssid);
-
-  Serial.print("IP address: ");
-  Serial.println(WiFi.localIP());
-  server.begin();
   Serial.print("Open Telnet and connect to IP:");
   Serial.print(WiFi.localIP());
   Serial.print(" on port ");
   Serial.println(port);
-}
-//=======================================================================
-//                    Loop
-//=======================================================================
 
-void loop()
+  moveData = "S";
+  speed = 250;
+}
+
+void loop() {
+  moveDataProcess();
+  setSpeed();
+
+  //check if there are any new clients
+  if (server.hasClient()) {
+    //find free/disconnected spot
+    int i;
+    for (i = 0; i < MAX_SRV_CLIENTS; i++)
+      if (!serverClients[i]) { // equivalent to !serverClients[i].connected()
+        serverClients[i] = server.available();
+        break;
+      }
+
+    if (i == MAX_SRV_CLIENTS) {
+      server.available().println("busy");
+
+    }
+  }
+
+  for (int i = 0; i < MAX_SRV_CLIENTS; i++)
+    while (serverClients[i].available() && Serial.availableForWrite() > 0) {
+      // working char by char is not very efficient
+      Data = serverClients[i].read();
+      dataProcess(Data);
+    }
+
+
+  // determine maximum output size "fair TCP use"
+  // client.availableForWrite() returns 0 when !client.connected()
+  int maxToTcp = 0;
+  for (int i = 0; i < MAX_SRV_CLIENTS; i++)
+    if (serverClients[i]) {
+      int afw = serverClients[i].availableForWrite();
+      if (afw) {
+        if (!maxToTcp) {
+          maxToTcp = afw;
+        } else {
+          maxToTcp = std::min(maxToTcp, afw);
+        }
+      } else {
+        // warn but ignore congested clients
+      }
+    }
+
+  //check UART for data
+  size_t len = std::min(Serial.available(), maxToTcp);
+  len = std::min(len, (size_t)STACK_PROTECTOR);
+  if (len) {
+    uint8_t sbuf[len];
+    int serial_got = Serial.readBytes(sbuf, len);
+    // push UART data to all connected telnet clients
+    for (int i = 0; i < MAX_SRV_CLIENTS; i++)
+      // if client.availableForWrite() was 0 (congested)
+      // and increased since then,
+      // ensure write space is sufficient:
+      if (serverClients[i].availableForWrite() >= serial_got) {
+        size_t tcp_sent = serverClients[i].write(sbuf, serial_got);
+
+      }
+  }
+}
+
+void dataProcess(String Data)
+{
+  Data.trim();
+
+  Serial.println(Data);
+
+  if (Data == "F" || Data == "B" || Data == "L" || Data == "R" || Data == "S" || Data == "Q" || Data == "W" || Data == "q" || Data == "w")
+  {
+    moveData = Data;
+  }
+  else if (Data == "0" || Data == "1" || Data == "2" || Data == "3" || Data == "4" || Data == "5" || Data == "6" || Data == "7" || Data == "8" || Data == "9")
+  {
+    int intData = Data.toInt();
+    speed = (intData * 10) + startSpeed;
+    Serial.println(Data);
+  }
+  else if (Data == ".")
+  {
+    //Serial.println(Data);
+  }
+}
+
+void moveDataProcess()
 {
   if (moveData == "F")
     forward();
@@ -93,37 +194,6 @@ void loop()
     controlOut(moveData);
   else if (moveData == "w")
     controlOut(moveData);
-
-  if (client)
-  {
-    if (client.connected())
-    {
-      Data = client.read();
-      Data.trim();
-      if (Data == "F" || Data == "B" || Data == "L" || Data == "R" || Data == "S" || Data == "Q" || Data == "W" || Data == "q" || Data == "w")
-      {
-        moveData = Data;
-        Serial.println(moveData);
-      }
-      else if (Data == "0" || Data == "1" || Data == "2" || Data == "3" || Data == "4" || Data == "5" || Data == "6" || Data == "7" || Data == "8" || Data == "9")
-      {
-        Serial.println(Data);
-        setSped(Data);
-      }
-    }
-    else
-    {
-      Serial.println("Client not Connected1");
-      client = server.available();
-      delay(1000);
-    }
-  }
-  else
-  {
-    Serial.println("Client not Connected2");
-    client = server.available();
-    delay(1000);
-  }
 }
 
 void controlOut(String _data)
@@ -145,89 +215,53 @@ void movement(int b)
   digitalWrite(regPins[2], LOW);
 }
 
-void setSped(String sp)
+void setSpeed()
 {
-  int intData = sp.toInt();
-  switch (intData) {
-    case 0:
-      sped = 120;
-      break;
-    case 1:
-      sped = 150;
-      break;
-    case 2:
-      sped = 180;
-      break;
-    case 3:
-      sped = 190;
-      break;
-    case 4:
-      sped = 200;
-      break;
-    case 5:
-      sped = 220;
-      break;
-    case 6:
-      sped = 230;
-      break;
-    case 7:
-      sped = 240;
-      break;
-    case 8:
-      sped = 250;
-      break;
-    case 9:
-      sped = 254;
-      break;
+  if (maxSpeed < speed)
+  {
+    if (moveData != "S")
+    {
+      maxSpeed++;
+      Serial.println(maxSpeed);
+      analogWrite(motor[1], maxSpeed);
+      analogWrite(motor[2], maxSpeed);
+      analogWrite(motor[3], maxSpeed);
+      analogWrite(motor[4], maxSpeed);
+    }
   }
 }
 
-void setSpeed(int sp, int mt)
+void setSpeed(int sp)
 {
-  analogWrite(motor[mt], sp);
+  maxSpeed = 100;
+  analogWrite(motor[1], sp);
+  analogWrite(motor[2], sp);
+  analogWrite(motor[3], sp);
+  analogWrite(motor[4], sp);
 }
 
 void forward()
 {
-  setSpeed(sped, 1);
-  setSpeed(sped, 2);
-  setSpeed(sped, 3);
-  setSpeed(sped, 4);
   movement(dataArray[0]);
 }
 
 void backward()
 {
-  setSpeed(sped, 1);
-  setSpeed(sped, 2);
-  setSpeed(sped, 3);
-  setSpeed(sped, 4);
   movement(dataArray[1]);
 }
 
 void left()
 {
-  setSpeed(sped, 1);
-  setSpeed(sped, 2);
-  setSpeed(sped, 3);
-  setSpeed(sped, 4);
   movement(dataArray[2]);
 }
 
 void right()
 {
-  setSpeed(sped, 1);
-  setSpeed(sped, 2);
-  setSpeed(sped, 3);
-  setSpeed(sped, 4);
   movement(dataArray[3]);
 }
 
 void mstop()
 {
-  setSpeed(0, 1);
-  setSpeed(0, 2);
-  setSpeed(0, 3);
-  setSpeed(0, 4);
   movement(0);
+  setSpeed(0);
 }
