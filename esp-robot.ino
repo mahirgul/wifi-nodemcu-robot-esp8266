@@ -3,8 +3,8 @@
 #define SendKey 0  //Button to send data Flash BTN on NodeMCU
 
 
-#define STASSID "GulHome"
-#define STAPSK  "demet@mahir@123"
+#define STASSID "YourSSID"
+#define STAPSK  "YourPass"
 
 #define BAUD_SERIAL 115200
 #define RXBUFFERSIZE 1024
